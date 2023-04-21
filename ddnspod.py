@@ -10,7 +10,7 @@ import hmac
 import logging
 
 LOG_LEVEL = logging.INFO
-CONFIG_PATH = "ddnspod.conf"
+CONFIG_NAME = "ddnspod.conf"
 CONFIG = {
     'SECRET_ID': 'AKIxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     'SECRET_KEY' : "vVxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxd",
@@ -19,20 +19,24 @@ CONFIG = {
     'INTERVAL' : 300,
 }
 
-def parse_config(path=CONFIG_PATH):
-    with open(path, 'r') as config:
-        while True:
-            line = config.readline()
-            if len(line) == 0:
-                break
-            if line[0] == '#':
-                continue
-            ele = line.split('=')
-            if len(ele) == 2:
-                CONFIG[ele[0].strip()] = ele[1].strip()
+def parse_config(path=CONFIG_NAME):
+    try:
+        with open(path, 'r') as config:
+            while True:
+                line = config.readline()
+                if len(line) == 0:
+                    break
+                if line[0] == '#':
+                    continue
+                ele = line.split('=')
+                if len(ele) == 2:
+                    CONFIG[ele[0].strip()] = ele[1].strip()
+    except Exception as e:
+        print(e)
+        pass
 
-
-parse_config()
+parse_config('/etc/'+CONFIG_NAME)
+parse_config(CONFIG_NAME)
 
 IP_SERVER = "ip.sb"
 VERSION = '2021-03-23'
@@ -46,6 +50,7 @@ logging.basicConfig(level=LOG_LEVEL, filename=CONFIG['LOG_FILE'],
                     format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',
                     datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__file__.split('/')[-1])
+
 
 
 def gen_authorization(type: str, uri: str, query: str, headers: str, headerkeys: str, payload: str, date: str, timestamp: int):

@@ -1,0 +1,12 @@
+[Unit]
+Description=DDNSPod Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/ddnspod.py
+
+[Install]
+WantedBy=multi-user.target
