@@ -103,13 +103,6 @@ def test_gen_authorization():
                  headerkeys, payload, date, timestamp))
 
 
-def check_error(resp):
-    resp = json.loads(resp)
-    if 'Response' in resp and 'Error' in resp['Response']:
-        logger.error('error response from server')
-        raise Exception(resp)
-
-
 def post(action: str, payload: object):
     """ 发送请求 """
     logger.debug(f'post(action={action}, payload={payload})')
@@ -138,8 +131,10 @@ def post(action: str, payload: object):
            # ' -H "X-TC-Region: ' + REGION + '"' +
            " -d '" + payload + "' -s " + ENDPOINT)
     logger.debug(cmd)
-    resp = os.popen(cmd).read()
-    check_error(resp)
+    resp = json.loads(os.popen(cmd).read())
+    if 'Response' in resp and 'Error' in resp['Response']:
+        logger.error('action %s response from server: %s' %(action, resp))
+        return None
     return resp
 
 
@@ -173,12 +168,7 @@ def create_record(domain: str, recordtype: str, recordline: str, value: str, sub
     if ttl is not None:
         payload['TTL'] = ttl
     resp = post('CreateRecord', payload)
-    resp = json.loads(resp)
-
-    if 'Error' in resp['Response']:
-        logger.error("failed")
-        return -1
-    return resp['Response']['RecordId']
+    return resp
 
 
 def delete_record(domain: str, recordid: int, domainid: int = None):
@@ -208,8 +198,7 @@ def update_record(domain: str, subdomain: str, recordtype: str, value: str):
     # get current record
     resp = describe_record_list(domain, subdomain, recordtype)
     logger.debug(resp)
-    resp = json.loads(resp)
-    if resp['Response'] and 'RecordList' in resp['Response']:
+    if resp and 'Response' in resp and 'RecordList' in resp['Response']:
         recordid = resp['Response']['RecordList'][0]['RecordId']
         remote_value = resp['Response']['RecordList'][0]['Value']
         if value == remote_value:
